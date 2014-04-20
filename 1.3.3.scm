@@ -70,23 +70,47 @@
 ; 1.37
 (define (cont-frac-rec n d k)
   (define (cont-frac n d k i)
-    (if (= k i)
+    (if (= i k)
 	0
 	(/ (n i) (+ (d i) (cont-frac n d k (+ 1 i))))))
   (cont-frac n d k 0))
 
 (define (cont-frac-iter n d k)
-  (define (cont-frac n d k i result)
-    (if (= i k)
+  (define (cont-frac n d k result)
+    (if (= k -1)
 	result
-	(cont-frac n d k (+ 1 i) (/ (n i) (+ (d i) result)))))
-  (cont-frac n d k 0 0))
+	(cont-frac n d (- k 1) (/ (n k) (+ (d k) result)))))
+  (cont-frac n d (- k 1) 0.0))
+
 
 ; 1/phi = 0.61803398875
 (cont-frac-rec (lambda (i) 1.0)
-	   (lambda (i) 1.0)
-	   11)
+	       (lambda (i) 1.0)
+	       10)
 
 (cont-frac-iter (lambda (i) 1.0)
-	   (lambda (i) 1.0)
-	   11)
+		(lambda (i) 1.0)
+		10)
+
+; 1.38
+(define (d i)
+  (if (not (= (modulo (+ i 2) 3) 0))
+      1
+      (* 2 (/ (+ i 2) 3.0))))
+
+ (cont-frac-rec (lambda (x) 1.0)
+ 	       d
+ 	       1000)
+
+ (cont-frac-iter (lambda (x) 1.0)
+ 		d
+ 		1000)
+
+(define (tan-cf x k mode)
+  (/ x (- 1 (mode (lambda (a) (* a a))
+			    (lambda (a) 2.0)
+			    k))))
+
+(tan-cf 3.4 1000 cont-frac-rec)
+
+(tan-cf 3.4 1000 cont-frac-iter)
