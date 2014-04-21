@@ -69,11 +69,11 @@
 
 ; 1.37
 (define (cont-frac-rec n d k)
-  (define (cont-frac n d k i)
+  (define (cont-frac i)
     (if (= i k)
 	0
 	(/ (n i) (+ (d i) (cont-frac n d k (+ 1 i))))))
-  (cont-frac n d k 0))
+  (cont-frac 0))
 
 (define (cont-frac-iter n d k)
   (define (cont-frac n d k result)
@@ -112,5 +112,83 @@
 			    k))))
 
 (tan-cf 3.4 1000 cont-frac-rec)
-
 (tan-cf 3.4 1000 cont-frac-iter)
+
+(define (average-damp f)
+  (lambda (x) (average x (f x))))
+
+(define (deriv g)
+  (lambda (x)
+    (/ (- (g (+ x dx)) (g x))
+       dx)))
+
+(define dx 0.00001)
+
+(define (cube x) (* x x x))
+
+((deriv cube) 5)
+
+(define (newton-transform g)
+  (lambda (x)
+    (- x (/ (g x) ((deriv g) x)))))
+
+(define (newtons-method g guess)
+  (fixed-point (newton-transform g) guess))
+
+(define (sqrt x)
+  (newtons-method (lambda (y) (- (square y) x))
+		  1.0))
+
+(sqrt 2)
+
+(define (fixed-point-of-transform g transform guess)
+  (fixed-point (transform g) guess))
+
+(define (sqrt x)
+  (fixed-point-of-transform (lambda (y) (/ x y))
+			    average-damp
+			    1.0))
+
+(sqrt 2)
+
+(define (sqrt x)
+  (fixed-point-of-transform (lambda (y) (- (square y) x))
+			    newton-transform
+			    1.0))
+
+(sqrt 2)
+
+; 1.40
+(define (cubic a b c)
+  (lambda (x)
+    (+ (cube x) (* a (square x)) (* b x) c)))
+
+(define (cr a b c x)
+  (newtons-method (cubic a b c) 1))
+
+(cr 5 2 1 0)
+
+; 1.41
+(define (double f)
+  (lambda (x) (f (f x))))  
+
+(define (inc x) (+ 1 x))
+
+((double inc) 0)
+
+(((double (double double)) inc) 0)
+
+; 1.42
+(define (compose f g)
+  (lambda (x) (f (g x))))
+
+((compose square inc) 6)
+
+; 1.43
+(define (repeated f n)
+  (if (= n 1)
+      f
+      (compose f (repeated f (- n 1)))))
+
+((repeated square 2) 5)
+
