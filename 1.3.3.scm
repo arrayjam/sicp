@@ -98,11 +98,11 @@
       1
       (* 2 (/ (+ i 2) 3.0))))
 
- (cont-frac-rec (lambda (x) 1.0)
- 	       d
+(cont-frac-rec (lambda (x) 1.0)
+	       d
  	       1000)
 
- (cont-frac-iter (lambda (x) 1.0)
+(cont-frac-iter (lambda (x) 1.0)
  		d
  		1000)
 
@@ -192,3 +192,41 @@
 
 ((repeated square 2) 5)
 
+; 1.44
+(define (smooth f)
+  (lambda (x)
+    (/ (+ (f (- x dx)) (f x) (f (+ x dx)))
+       3)))
+
+(define (n-smooth f n)
+  (repeated (smooth f) n))
+
+(define (pow x n)
+  (cond ((< n 0) (error "Squares, not roots"))
+	((= n 0) 1)
+	((= n 1) x)
+	(else (* x (pow x (- n 1))))))
+
+(pow 3 0)
+
+; 1.45
+(define (nth-root n x)
+  (fixed-point ((repeated average-damp (- n 2)) (lambda (y) (/ x (pow y (- n 2))))) 1.0))
+
+(nth-root 3 2) ; 1.148698
+
+; TODO 1.46
+(define (iterative-improve good-enough? improve)
+  (lambda (initial-guess)
+    (define (iterate current-guess)
+      (let ((new-guess (improve initial-guess current-guess)))
+	(if (good-enough? current-guess new-guess)
+	    new-guess
+	    (iterate new-guess))))
+    (iterate initial-guess)))
+
+(define (sqrt x)
+  ((iterative-improve (lambda (guess x) (< (abs (- (square guess) x)) dx))
+		      (lambda (guess x) (average guess (/ x guess)))) 1.0))
+
+(sqrt 2)
